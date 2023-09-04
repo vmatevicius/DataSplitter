@@ -1,3 +1,0 @@
-# ShellyDataExtractor
-# ShellyDataExtractor
-# ShellyDataExtractor
