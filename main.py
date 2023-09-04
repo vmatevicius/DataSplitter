@@ -17,7 +17,7 @@ def get_correct_phase() -> str:
     while True:
         phase = input("Enter phase letter (A, B, C): ").strip().upper()
         if phase not in ["A", "B", "C"]:
-            print("Wrong input, try again)")
+            print("Wrong input try again)")
         return phase
 
 def get_file_amount() -> int:
