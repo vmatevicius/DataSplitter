@@ -4,70 +4,7 @@ import pandas as pd
 import os
 from tqdm import tqdm
 
-def sort_csv_files(full_file_name: str) -> None:
-    try:
-        os.chdir(os.path.abspath(os.path.dirname(__file__)))
-        file = pd.read_csv(full_file_name)
-        file.sort_values("Date/time UTC", axis=0, ascending=True,inplace=True, na_position='first')
-        file.to_csv(full_file_name, index=False)
-    except Exception as e:
-        print(f"Error occured while sorting files: {e}")
-        print("Try again, if problem persists that means an error has been made....")
-        
-def rearange_dates(data: List[str], phase: str) -> None:
-    
-    with open(f"em_data({phase}).csv", "w", newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(data[0])
-        for line in data[1:]:
-            active_wh = line[1]
-            returned_wh = line[2]
-            hour = line[0][11:13]
-            minutes = line[0][14:16]
-            year = line[0][6:10]
-            month = line[0][3:5]
-            day = line[0][:2]
-            row = [f"{year}-{month}-{day} {hour}:{minutes}", f"{active_wh}", f"{returned_wh}"]
-            writer.writerow(row)
-
-def call_date_rearangement(file_count: int) -> Optional[bool]:
-    counter = 0
-    while file_count > counter:
-        print(" Is your file date format DD/MM/YYYY?: ")
-        print()
-        answer = get_correct_answer()
-        print()
-        if answer == "Y":
-            full_file_name = input("Enter full file name(instead of PHASE type the correct letter): ")
-            phase = get_correct_phase()
-            data = (retrieve_data_from_csv(full_file_name))
-            rearange_dates(data, phase)
-            print("dates rearanged successfully")
-            print()
-            counter += 1
-        else:
-            return False
-
-def call_file_splitting(file_count: int) -> bool:
-    counter = 0 
-    while file_count > counter:
-        full_file_name = input("Enter full file name(instead of PHASE type the correct letter): ")
-        phase = get_correct_phase()
-        print()
-        data = (retrieve_data_from_csv(full_file_name))
-        
-        print()
-        sort_csv_files(full_file_name) 
-        data = (retrieve_data_from_csv(full_file_name))
-        if split_data_to_days(data, phase):
-            print("Files split succesfully")
-            counter += 1
-        else:
-            print("Error occured try again")
-            return False
-
-
-def get_correct_answer() -> str:
+def get_yes_no_answer() -> str:
     while True:
         answer = input("Y/N: ").strip().upper()
         if answer not in ["Y", "N"]:
@@ -114,6 +51,16 @@ def get_folder_dir(phase: str) -> Optional[str]:
         print(f"Error occured while getting folder dir: {e}")
         print("Try again, if problem persists that means an error has been made....")
 
+def sort_csv_files(full_file_name: str) -> None:
+    try:
+        os.chdir(os.path.abspath(os.path.dirname(__file__)))
+        file = pd.read_csv(full_file_name)
+        file.sort_values("Date/time UTC", axis=0, ascending=True,inplace=True, na_position='first')
+        file.to_csv(full_file_name, index=False)
+    except Exception as e:
+        print(f"Error occured while sorting files: {e}")
+        print("Try again, if problem persists that means an error has been made....")
+        
 def make_new_folder(phase: str) -> Optional[bool]:
     try:
         os.mkdir(os.path.join(os.path.abspath(os.path.dirname(__file__)), f"Sorted data({phase})"))
@@ -135,7 +82,61 @@ def create_file(year:str, month: str, day:str, data: List[str], one_day_data: Li
         print(f"Error occured while creating a new file: {e}")
         print("Try again, if problem persists that means an error has been made....")
         return False
+
+        
+def call_date_rearangement(file_count: int) -> Optional[bool]:
+    counter = 0
+    while file_count > counter:
+        print(" Is your file date format DD/MM/YYYY?: ")
+        print()
+        answer = get_yes_no_answer()
+        print()
+        if answer == "Y":
+            full_file_name = input("Enter full file name(instead of PHASE type the correct letter): ")
+            phase = get_correct_phase()
+            data = (retrieve_data_from_csv(full_file_name))
+            rearange_dates(data, phase)
+            print("dates rearanged successfully")
+            print()
+            counter += 1
+        else:
+            return False
+        
+def rearange_dates(data: List[str], phase: str) -> None:
     
+    with open(f"em_data({phase}).csv", "w", newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(data[0])
+        for line in data[1:]:
+            active_wh = line[1]
+            returned_wh = line[2]
+            hour = line[0][11:13]
+            minutes = line[0][14:16]
+            year = line[0][6:10]
+            month = line[0][3:5]
+            day = line[0][:2]
+            row = [f"{year}-{month}-{day} {hour}:{minutes}", f"{active_wh}", f"{returned_wh}"]
+            writer.writerow(row)
+
+
+def call_file_splitting(file_count: int) -> bool:
+    counter = 0 
+    while file_count > counter:
+        full_file_name = input("Enter full file name(instead of PHASE type the correct letter): ")
+        phase = get_correct_phase()
+        print()
+        data = (retrieve_data_from_csv(full_file_name))
+        
+        print()
+        sort_csv_files(full_file_name) 
+        data = (retrieve_data_from_csv(full_file_name))
+        if split_data_to_days(data, phase):
+            print("Files split succesfully")
+            counter += 1
+        else:
+            print("Error occured try again")
+            return False
+
 
 def split_data_to_days(data: List[str], phase: str) -> bool:
     try:
