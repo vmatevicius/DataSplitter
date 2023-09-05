@@ -201,7 +201,6 @@ def split_separate_phase_data_to_days(data: List[str], phase: str, dts_start: st
                 one_hour_returned_wh += float(returned_wh)
             
             elif hour != line[0][11:13]:
-                if
                 
                 one_hour_active_wh += float(active_wh)
                 one_hour_returned_wh += float(returned_wh)
