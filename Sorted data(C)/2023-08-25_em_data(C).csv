@@ -1,4 +1,5 @@
 Date/time UTC,Active energy Wh (C),Returned energy Wh (C)
+2023-08-25 23:00,14.3,0.0
 2023-08-25 00:00,14.4,0.0
 2023-08-25 01:00,14.4,0.0
 2023-08-25 02:00,14.7,0.0
@@ -22,5 +23,4 @@ Date/time UTC,Active energy Wh (C),Returned energy Wh (C)
 2023-08-25 20:00,14.8,0.0
 2023-08-25 21:00,14.6,0.0
 2023-08-25 22:00,14.4,0.0
-2023-08-25 23:00,342.0,0.0
-Total,active = 14536.9, returned = 0.0
+Total,active = 14209.2, returned = 0.0

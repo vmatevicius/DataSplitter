@@ -1,4 +1,5 @@
 Date/time UTC,Active energy Wh (C),Returned energy Wh (C)
+2022-10-26 23:00,10.2,0.0
 2022-10-26 00:00,737.4,0.0
 2022-10-26 01:00,153.4,0.0
 2022-10-26 02:00,9.7,0.0
@@ -22,5 +23,4 @@ Date/time UTC,Active energy Wh (C),Returned energy Wh (C)
 2022-10-26 20:00,9.6,0.0
 2022-10-26 21:00,522.2,0.0
 2022-10-26 22:00,260.8,0.0
-2022-10-26 23:00,9.6,0.0
-Total,active = 16595.8, returned = 0.0
+Total,active = 16596.4, returned = 0.0

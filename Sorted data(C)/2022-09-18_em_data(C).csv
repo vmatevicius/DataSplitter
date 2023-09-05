@@ -22,5 +22,4 @@ Date/time UTC,Active energy Wh (C),Returned energy Wh (C)
 2022-09-18 20:00,9.2,0.0
 2022-09-18 21:00,9.6,0.0
 2022-09-18 22:00,9.1,0.0
-2022-09-18 23:00,9.4,0.0
-Total,active = 4327.4, returned = 0.0
+Total,active = 4318.0, returned = 0.0

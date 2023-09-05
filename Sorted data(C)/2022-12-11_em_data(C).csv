@@ -1,4 +1,5 @@
 Date/time UTC,Active energy Wh (C),Returned energy Wh (C)
+2022-12-11 23:00,11.9,0.0
 2022-12-11 00:00,11.8,0.0
 2022-12-11 01:00,11.6,0.0
 2022-12-11 02:00,12.0,0.0
@@ -22,5 +23,4 @@ Date/time UTC,Active energy Wh (C),Returned energy Wh (C)
 2022-12-11 20:00,11.5,0.0
 2022-12-11 21:00,11.6,0.0
 2022-12-11 22:00,11.4,0.0
-2022-12-11 23:00,11.5,0.0
-Total,active = 2405.6, returned = 0.0
+Total,active = 2406.0, returned = 0.0
