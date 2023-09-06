@@ -1,8 +1,53 @@
 from typing import List, Optional
 import csv
-import pandas as pd
+import re
 import os
+from datetime import datetime, timedelta
+import pandas as pd
 from tqdm import tqdm
+
+month_days = {
+    "01": "30",
+    "02": "28",
+    "03": "31",
+    "04": "30",
+    "05": "31",
+    "06": "30",
+    "07": "31",
+    "08": "31",
+    "09": "30",
+    "10": "31",
+    "11": "30",
+    "12": "31",
+}
+
+
+def check_utc_value(month: str, day: str, saving_start:str, saving_stop: str) ->  True:
+    if f"{month}/{day}" == saving_start or int(f"{month}{day}") > int(saving_start.replace("/", "")) and int(f"{month}{day}") < int(saving_stop.replace("/", "")):
+        return "daylight saving"
+    else:
+        return "standard"
+    
+def get_daylight_saving_start() -> str:
+    while True:
+        
+        date = input("Enter starting date (MM/DD): ").strip()
+        result = re.search(r"^(0[1-9]|1[0-2])/(0[1-9]|[12]\d|3[01])$", date)
+        if result:
+            return date
+        print("wrong format")
+        continue
+    
+def get_daylight_saving_stop() -> str:
+    while True:
+        
+        date = input("Enter stopping date (MM/DD): ").strip()
+        result = re.search(r"^(0[1-9]|1[0-2])/(0[1-9]|[12]\d|3[01])$", date)
+        if result:
+            return date
+        print("wrong format")
+        continue
+    
 
 def seperately_or_summed_up() -> str:
     while True:
@@ -155,6 +200,7 @@ def call_file_splitting(file_count: int) -> bool:
 def split_separate_phase_data_to_days(data: List[str], phase: str, dts_start: str, dts_stop:str) -> bool:
     try:
         print("     splitting phase data to days..........")
+        
         pbar = tqdm(total=len(data))
         one_day_data = []
         total_daily_active_wh = 0 
@@ -167,6 +213,7 @@ def split_separate_phase_data_to_days(data: List[str], phase: str, dts_start: st
         one_hour_returned_wh = 0
         total = 0 
         daily_total = 0
+
         for line in data[1:]:
             active_wh = line[1]
             returned_wh = line[2]
@@ -232,7 +279,7 @@ def split_separate_phase_data_to_days(data: List[str], phase: str, dts_start: st
         print("Try again, if problem persists that means an error has been made....")
         return False
 
-def sort_data_hourly(data: List[str]) -> List[str]:
+def sort_data_hourly(data: List[str], saving_start: str, saving_stop:str)  -> List[str]:
         try:
             pbar = tqdm(total=len(data))
             print("        sorting data hourly......")
@@ -243,6 +290,8 @@ def sort_data_hourly(data: List[str]) -> List[str]:
             year = 0
             one_hour_active_wh = 0
             one_hour_returned_wh = 0
+            standard_time_index = 0
+            
             
             for line in data[1:]:
                 active_wh = line[1]
@@ -256,7 +305,17 @@ def sort_data_hourly(data: List[str]) -> List[str]:
                 elif hour != line[0][11:13]:
                     one_hour_active_wh += float(active_wh)
                     one_hour_returned_wh += float(returned_wh)
-                    hourly_data.append([f"{year}-{month}-{day} {hour}:00",f"{round(one_hour_active_wh, 2)}",f"{one_hour_returned_wh}"])
+                    if check_utc_value(month , day, saving_start, saving_stop) == "daylight saving":
+                        original_date = datetime(year, int(month), int(day), int(hour), 00)
+                        updated_date = original_date + timedelta(hours=3)
+                    else:
+                        original_date = datetime(year, int(month), int(day), int(hour), 00)
+                        updated_date = original_date + timedelta(hours=2)
+                    if len(hourly_data) != 0:
+                        if str(updated_date) == hourly_data[len(hourly_data) - 1][0]:
+                            hourly_data.append([f"This was standard time start",f"{round(one_hour_active_wh, 2)}",f"{one_hour_returned_wh}"])
+                            standard_time_index = len(hourly_data)
+                    hourly_data.append([f"{str(updated_date)}",f"{round(one_hour_active_wh, 2)}",f"{one_hour_returned_wh}"])
                     one_hour_active_wh = 0
                     one_hour_returned_wh = 0 
                     hour = line[0][11:13]
@@ -269,7 +328,7 @@ def sort_data_hourly(data: List[str]) -> List[str]:
                 if year == 0:
                     year = int(line[0][:4])
                 if year != int(line[0][:4]):
-                    year +=  1
+                    year += 1 
                 if month == 0:
                     month == line[0][5:7]
                 if month != line[0][5:7]:
@@ -280,6 +339,7 @@ def sort_data_hourly(data: List[str]) -> List[str]:
                 if day != line[0][8:10]:
                     day = line[0][8:10]
                 pbar.update(1)
+            del hourly_data[standard_time_index]
             pbar.close()
             return hourly_data
         except Exception as e:
@@ -301,7 +361,9 @@ def split_data_to_days(data: List[str]) -> bool:
 
         for line in data:
             total += float(line[1])
-            
+            if line[0]== "This was standard time start":
+                one_day_data.append(line)
+                continue
             if day == 0:
                 day = line[0][8:10]
             if day != line[0][8:10]:
@@ -319,6 +381,11 @@ def split_data_to_days(data: List[str]) -> bool:
                 one_day_data = []
                 day = line[0][8:10]
 
+            if month == 0:
+                month == line[0][5:7]
+            if month != line[0][5:7]:
+                month = line[0][5:7]
+            
             if hour == 0:
                 hour = line[0][11:13]
                 one_day_data.append(line)
@@ -326,15 +393,11 @@ def split_data_to_days(data: List[str]) -> bool:
             elif hour != line[0][11:13]:
                 one_day_data.append(line)
                 hour = line[0][11:13]
-
+            
             if year == 0:
                 year = int(line[0][:4])
             if year != int(line[0][:4]):
                 year +=  1
-            if month == 0:
-                month == line[0][5:7]
-            if month != line[0][5:7]:
-                month = line[0][5:7]
             pbar.update(1)
         
         # Create the last file after processing all data
@@ -393,26 +456,26 @@ def launch_application() -> None:
     print(" Data files MUST be identical to example 'em_data(PHASE).csv', Phases are - A, B, C")
     print(" If program fails it is highly likely that you entered wrong information")
     print()
-    print(" These files usually come in UTC+0 format" )
+    print(" These files will be converted to Lithuanias UTC+2 format" )
     print(" So you need to specify the dates when daylight saving starts and ends" )
     
-    daylight_saving_start = input("Enter starting date (MM/DD): ").strip()
-    daylight_saving_stop = input("Enter ending date (MM/DD): ").strip()
+    saving_start = get_daylight_saving_start()
+    saving_stop = get_daylight_saving_stop()
     
     
     choice = seperately_or_summed_up()
-    files_count = call_date_rearangement()
     sort_csv_files("em_data(A).csv")
     sort_csv_files("em_data(B).csv")
     sort_csv_files("em_data(C).csv")
+    files_count = call_date_rearangement()
     if choice == "SUMMED":
         phase_a = retrieve_data_from_csv("em_data(A).csv")
         phase_b = retrieve_data_from_csv("em_data(B).csv")
         phase_c = retrieve_data_from_csv("em_data(C).csv")
-        one_hour_a = sort_data_hourly(phase_a)
-        one_hour_b = sort_data_hourly(phase_b)
-        one_hour_c = sort_data_hourly(phase_c)
-        daily_data = sum_up_values(one_hour_a, one_hour_b,one_hour_c)
+        one_hour_a = sort_data_hourly(phase_a, saving_start, saving_stop)
+        one_hour_b = sort_data_hourly(phase_b, saving_start, saving_stop)
+        one_hour_c = sort_data_hourly(phase_c, saving_start, saving_stop)
+        daily_data = sum_up_values(one_hour_a, one_hour_b, one_hour_c)
         split_data_to_days(daily_data)
     else:
         call_file_splitting(files_count)
